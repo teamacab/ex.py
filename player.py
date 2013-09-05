@@ -10,7 +10,11 @@ def loadPlayer(netid,uid):
 		RVEngine.log("Player not found, creating.")
 		p = Player()
 		p.uid = uid
-	p.netid = netid	
+		p.save()
+	p.netid = netid
+	p.update()
+	RVEngine.log("Loading unitdata")	
+	RVEngine.loadUnit(p)
 	return p
 
 

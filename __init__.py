@@ -6,6 +6,9 @@ from rvengine import RVEngine
 
 from database import Unit
 from database import Player
+from thread import start_new_thread
+
+import time
 
 #import RVEngine
 #from Unit import *
@@ -18,7 +21,7 @@ VERSION="0.1.0"
 allUnits = {}
 players = {}
 inArma = False
-
+running = True
 
 RVEngine.log("Loading EXPY Python Interface " + VERSION);
 
@@ -29,9 +32,15 @@ def createUnit(netid):
 	allUnits.update({ netid : u })
 	return u
 
-def getUnit(varname):
+def getUnit(netid,varname):
 	qo = Unit().queryObject()
 	u = qo.filter(Unit.varname == varname).first()
+	if u is None:
+		RVEngine.log("Creating new unit")
+		u = Unit()
+		u.varname = varname
+		u.save()
+	u.netid = netid
 	return u
 	
 def longtest(prefix):
@@ -55,14 +64,26 @@ def xtr():
 	longtest(1233231)
 	longtest(1233222)
 	return test()
+
 def test():
 	x = Player()
 	qa = x.queryObject()
 	return qa.all()
 	
+def a(b):
+	return b
+
+def loadUnit(netid,varname):
+	RVEngine.log("Loading " + varname)
+	u = getUnit(netid,varname)
+	RVEngine.loadUnit(u)
+	allUnits.update({ netid : u })
+	return u
 
 def loadPlayer(netid,uid):
-	return player.loadPlayer(netid,uid)
+	p = player.loadPlayer(netid,uid)
+	players.update({ uid : p})
+	return p
 """
 def createPlayer(uid,netid):
 	RVEngine.log("Creating player for uid " + uid)
@@ -80,6 +101,22 @@ def getPlayer(uid,netid=None):
 def loadPlayer(uid,netid):
 	return 0
 """	
+def getPlayer(uid):
+	return players.get(uid)
+	
+		
+def savePlayers():
+	for uid, p in players.items():
+		p.update()
+		
+	return True
+
+def saveUnits():
+	for netid, p in allUnits.items():
+		p.update()
+		
+	return True
+		
 def version():
 	return VERSION
 	
@@ -98,5 +135,16 @@ def status():
 	return sys.path
 	
 	
-	
+def saveThread():
+	from ex.database import getSession
+	RVEngine.log("Starting saveThread")
+	while running:
+		#RVEngine.log("Saving", __file__)
+		savePlayers()
+		saveUnits()
+		RVEngine.log("Flushing database.")
+		getSession().flush()
+		time.sleep(10)
+		
+start_new_thread(saveThread, ())
 	

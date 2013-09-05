@@ -90,7 +90,7 @@ class Model():
 		sess = getSession()
 		sess.begin(subtransactions=True)
 		sess.commit()
-		sess.flush()
+		#sess.flush()
 		
     def delete(self):
  		from ex.database import getSession 
@@ -116,49 +116,48 @@ class ArmaObject(Model):
 	varname = Column(String(255))
 	clazz = Column(String(255))
 	side = Column(String(255))
-	posATL = Column(String(255), default="[0,0,0]")
-	posASL = Column(String(255), default="[0,0,0]")
+	posATL = Column(String(255))
+	posASL = Column(String(255))
+	dir = Column(String(255))
 	animation = Column(String(255))
 	damage = Column(String(255), default="0")
 	alive = Column(String(255))
+	
 	
 	def sqf(self):
 		if self.netid is None:
 			return "objNull"
 		return "(objectFromNetId \"" + self.netid + "\")"
 	
-	
+	def __repr__(self):
+		return '(objectFromNetId "' + self.netid + '")'
 
 class Unit(Base,ArmaObject):
 	__tablename__ = 'units'
 	loadout = Column(Text())
 	vehicle = Column(String(255))
 	vehiclePos = Column(String(255))
-	variables = relationship("Variable")
+	variables = Column(Text())
 	rank = Column(String(255))
 	skill = Column(String(255))
 	name = Column(String(255))
-	
+	def __repr__(self):
+		return '(objectFromNetId "' + self.netid + '")'
 	
 class Player(Base,ArmaObject):
 	__tablename__ = 'player'
 	uid = Column(String(255))
+	loadout = Column(Text())
+	vehicle = Column(String(255))
+	vehiclePos = Column(String(255))
+	variables = Column(Text())
+	rank = Column(String(255))
+	skill = Column(String(255))
+	
 	def __init__(self):
 		pass
-		
 	def __repr__(self):
-		return (
-			self.__class__.__name__ + " " +
-			self.netid + " " + self.uid
-		)
-	
-class Variable(Model,Base):
-	__tablename__ = 'variables'
-	id = Column(Integer, primary_key=True)
-	key = Column(String(255))
-	value = Column(String(255))
-	unit_id = Column(Integer, ForeignKey('units.id'))
-	player_id = Column(Integer, ForeignKey('player.id'))
+		return '(objectFromNetId "' + self.netid + '")'	
 	
 ## Create all Tables 
 Base.metadata.create_all(engine)
