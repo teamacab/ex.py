@@ -63,8 +63,10 @@ class RVEngine:
 		#code.append('private "_unit";')
 		if unit.side is not None and unit.clazz is not None and unit.posATL is not None:
 			code.append('_unit = (createGroup WEST) createUnit ["' + unit.clazz + '", ' + unit.posATL + ', [], 0, "NONE"];')
+			code.append('_unit setVariable["pyjarma", true, true];')
 			code.append('_py=format["ex.updateNetId(""' + unit.ref + '"", ""%1"")", netid _unit];')
 			code.append('[_py] call EX_fnc_PY;')
+			code.append("sleep 0.02;")
 			
 		else:
 			return False # can not create unit.

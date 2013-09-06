@@ -40,10 +40,20 @@ def getUnit(netid,varname):
 		RVEngine.log("Creating new unit")
 		u = Unit()
 		u.varname = varname
-		u.save()
+		start_new_thread(u.save, ())
 	u.netid = netid
 	return u
 
+
+def preloadUnit(netid,varname):
+	start_new_thread(preloadUnit, (netid,varname))
+	
+def preloadUnitT(netid,varname):
+	u = Unit()
+	u.varname = varname
+	u.netid = netid
+	u.save()
+	
 def loadUnit(netid,varname):
 	RVEngine.log("Loading " + varname)
 	u = getUnit(netid,varname)
@@ -59,11 +69,15 @@ def loadPlayer(netid,uid):
 def getPlayer(uid):
 	return players.get(uid)
 	
+def getPlayerByVarname(varname):
+	qo = Player().queryObject()
+	p = qo.filter(Player.varname == varname).first()
+	return p
 		
 def savePlayers():
 	qo = Player().queryObject()
 	for p in qo.all():
-		RVEngine.log("Updating " + str(p.varname))
+		#RVEngine.log("Updating " + str(p.varname))
 		p.update()
 		
 	return True
@@ -71,7 +85,7 @@ def savePlayers():
 def saveUnits():
 	qo = Unit().queryObject()
 	for u in qo.all():
-		RVEngine.log("Updating " + str(u.varname))
+		#RVEngine.log("Updating " + str(u.varname))
 		u.update()
 		
 	return True
@@ -105,24 +119,31 @@ def updateNetId(ref, netid):
 	return x
 
 
-def loadWorld():
+def loadWorldT():
 	RVEngine.log("Restoring world... this may take a while.")
 	# restore all units
 	qo = Unit().queryObject()
 	for u in qo.all():
 		RVEngine.createUnit(u)
+
+def loadWorld():
+	start_new_thread(loadWorldT, ())
 	return True
 
-def saveThread():
+
+def saveWorld():
 	from ex.database import getSession
+	savePlayers()
+	saveUnits()
+	#RVEngine.log("Flushing database.")
+	getSession().flush()
+def saveThread():
 	RVEngine.log("Starting saveThread")
 	while running:
 		time.sleep(10)
+		saveWorld()
 		#RVEngine.log("Saving", __file__)
-		savePlayers()
-		saveUnits()
-		RVEngine.log("Flushing database.")
-		getSession().flush()
+	
 
 		
 start_new_thread(saveThread, ())

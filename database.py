@@ -48,14 +48,12 @@ class Model():
 		sess.begin(subtransactions=True)
 		try:
 			sess.add(self)
-			sess.flush()
 			sess.commit()
 		except:
 			sess.rollback()
 			sess.begin(subtransactions=True)
 			try:
 				sess.add(self)
-				sess.flush()
 				sess.commit()
 			except:
 				sess.rollback()
