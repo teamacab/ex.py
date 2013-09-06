@@ -12,9 +12,10 @@ def loadPlayer(netid,uid):
 		p.uid = uid
 		p.save()
 	p.netid = netid
+	p.sync = True
 	p.update()
 	RVEngine.log("Loading unitdata")	
-	RVEngine.loadUnit(p)
+	RVEngine.loadPlayer(p)
 	return p
 
 

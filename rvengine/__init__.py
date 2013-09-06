@@ -1,4 +1,5 @@
 from textwrap import wrap, TextWrapper
+import time
 class RVEngine:
 	
 	instance = None
@@ -59,47 +60,94 @@ class RVEngine:
 	@staticmethod
 	def createUnit(unit):
 		code = []
+		#code.append('private "_unit";')
 		if unit.side is not None and unit.clazz is not None and unit.posATL is not None:
-			code.append('_unit = (createGroup ' + unit.side + ') createUnit ["' + unit.clazz + '", ' + unit.posATL + ', [], 0, "NONE"];')
+			code.append('_unit = (createGroup WEST) createUnit ["' + unit.clazz + '", ' + unit.posATL + ', [], 0, "NONE"];')
+			code.append('_py=format["ex.updateNetId(""' + unit.ref + '"", ""%1"")", netid _unit];')
+			code.append('[_py] call EX_fnc_PY;')
+			
 		else:
-			return False # could not create unit.
-		
-		return RVEngine.script(" ".join(code))
-	
-	@staticmethod
-	def loadUnit(unit):
-		code = []
-		
+			return False # can not create unit.
+
+		# if varname
+		if unit.varname is not None:
+			code.append('_unit setVehicleVarName "' + unit.varname + '";')
+			code.append(unit.varname + ' = _unit;');
+			code.append('publicVariable "' + unit.varname + '";')
+			
 		# restore variables
 		if unit.variables is not None:
-			code.append('[' + str(unit) + ', ' + unit.variables + '] call EX_fnc_setAllVariables;')
+			code.append('[_unit, ' + unit.variables + '] call EX_fnc_setAllVariables;')
 			
 		# restore rank
 		if unit.rank is not None:
-			code.append(str(unit) + ' setRank "' + unit.rank+ '";')
+			code.append('_unit setRank "' + unit.rank+ '";')
 			
 		# restore skill
 		if unit.skill is not None:
-			code.append(str(unit) + " setSkill " + unit.skill + ";")
+			code.append('_unit setSkill ' + unit.skill + ';')
 			
 		# restore loadout if exist
 		if unit.loadout is not None:
-			code.append('[' + str(unit) + ', ' + unit.loadout + '] call EX_fnc_setLoadOut;')
+			code.append('[_unit, ' + unit.loadout + '] call EX_fnc_setLoadOut;')
 		
 		# restore animation
 		if unit.animation is not None:
-			code.append(str(unit) + ' playMoveNow "' + unit.animation + '";')
+			code.append('_unit playMoveNow "' + unit.animation + '";')
 			
 		# restore dir
 		if unit.dir is not None:
-			code.append(str(unit) + " setDir " + unit.dir + ";")
+			code.append('_unit setDir ' + unit.dir + ";")
 				
 		# restore pos
 		if unit.posATL is not None:
-			code.append(str(unit) + " setPosATL " + unit.posATL + ";")
+			code.append('_unit setPosATL ' + unit.posATL + ";")
 		
-		
+		# run init
+		if unit.init is not None:
+			code.append('_unit call compile format["' + unit.init + '"];');
 		
 		#RVEngine.log("Code is: " + "\n".join(code))
-		return RVEngine.script(" ".join(code))
+		RVEngine.script(" ".join(code))
+		return " ".join(code)
+			
+	@staticmethod
+	def loadPlayer(unit):
+		code = []
+		code.append('_unit = (objectFromNetId "' + unit.netid + '");')
+		# restore variables
+		if unit.variables is not None:
+			code.append('[_unit, ' + unit.variables + '] call EX_fnc_setAllVariables;')
+			
+		# restore rank
+		if unit.rank is not None:
+			code.append('_unit setRank "' + unit.rank+ '";')
+			
+		# restore skill
+		if unit.skill is not None:
+			code.append('_unit setSkill ' + unit.skill + ';')
+			
+		# restore loadout if exist
+		if unit.loadout is not None:
+			code.append('[_unit, ' + unit.loadout + '] call EX_fnc_setLoadOut;')
+		
+		# restore animation
+		if unit.animation is not None:
+			code.append('_unit playMoveNow "' + unit.animation + '";')
+			
+		# restore dir
+		if unit.dir is not None:
+			code.append('_unit setDir ' + unit.dir + ";")
+				
+		# restore pos
+		if unit.posATL is not None:
+			code.append('_unit setPosATL ' + unit.posATL + ";")
+		
+		# run init
+		if unit.init is not None:
+			code.append('_result = _unit call compile ' + unit.init);
+		
+		#RVEngine.log("Code is: " + "\n".join(code))
+		RVEngine.script(" ".join(code))
+		return " ".join(code)
 			

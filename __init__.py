@@ -7,6 +7,7 @@ from rvengine import RVEngine
 from database import Unit
 from database import Player
 from thread import start_new_thread
+#import shortuuid
 
 import time
 
@@ -22,7 +23,7 @@ allUnits = {}
 players = {}
 inArma = False
 running = True
-
+uuidIndex = 0
 RVEngine.log("Loading EXPY Python Interface " + VERSION);
 
 def createUnit(netid):
@@ -42,41 +43,11 @@ def getUnit(netid,varname):
 		u.save()
 	u.netid = netid
 	return u
-	
-def longtest(prefix):
-	i = 0
-	list = []
-	x = None
-	while i < 100:
-		num = prefix + i
-		p = Player()
-		p.uid = num
-		list.append(p)
-		x = p
-		i += 1
-	Player().saveMultiple(list)
-	return test()
-	
-def xtr():
-	longtest(123)
-	longtest(1232)
-	longtest(12311)
-	longtest(1233231)
-	longtest(1233222)
-	return test()
-
-def test():
-	x = Player()
-	qa = x.queryObject()
-	return qa.all()
-	
-def a(b):
-	return b
 
 def loadUnit(netid,varname):
 	RVEngine.log("Loading " + varname)
 	u = getUnit(netid,varname)
-	RVEngine.loadUnit(u)
+	#RVEngine.loadUnit(u)
 	allUnits.update({ netid : u })
 	return u
 
@@ -84,36 +55,24 @@ def loadPlayer(netid,uid):
 	p = player.loadPlayer(netid,uid)
 	players.update({ uid : p})
 	return p
-"""
-def createPlayer(uid,netid):
-	RVEngine.log("Creating player for uid " + uid)
-	p = Player(uid)
-	players.update( { uid : p } )
-	allUnits.update( { netid : p } )
-	return p
-	
-def getPlayer(uid,netid=None):
-	p = players.get(uid)
-	if p is None and netid is not None:
-		p = createPlayer(uid,netid)
-	return p
-	
-def loadPlayer(uid,netid):
-	return 0
-"""	
+
 def getPlayer(uid):
 	return players.get(uid)
 	
 		
 def savePlayers():
-	for uid, p in players.items():
+	qo = Player().queryObject()
+	for p in qo.all():
+		RVEngine.log("Updating " + str(p.varname))
 		p.update()
 		
 	return True
 
 def saveUnits():
-	for netid, p in allUnits.items():
-		p.update()
+	qo = Unit().queryObject()
+	for u in qo.all():
+		RVEngine.log("Updating " + str(u.varname))
+		u.update()
 		
 	return True
 		
@@ -123,28 +82,48 @@ def version():
 
 def getArmaDir():
 	return os.path.abspath(os.getcwd() + "\\..\\")
-	
-def test1(a):
-	RVEngine.execute("hint 'hihihihih: " + a + "'")
-	return a
-	
+
+def uuid():
+	return int(time.time()+300)
 
 	
 	
 def status():
 	return sys.path
 	
+def updateNetId(ref, netid):
+	qo = Unit().queryObject()
+	x = qo.filter(Unit.ref==ref).first()
+	if qo is None:
+		x = qo.filter(Player.ref==ref).first()
 	
+	if x is not None:
+		x.netid = netid
+		x.update()
+		x.sync = True
+	
+	return x
+
+
+def loadWorld():
+	RVEngine.log("Restoring world... this may take a while.")
+	# restore all units
+	qo = Unit().queryObject()
+	for u in qo.all():
+		RVEngine.createUnit(u)
+	return True
+
 def saveThread():
 	from ex.database import getSession
 	RVEngine.log("Starting saveThread")
 	while running:
+		time.sleep(10)
 		#RVEngine.log("Saving", __file__)
 		savePlayers()
 		saveUnits()
 		RVEngine.log("Flushing database.")
 		getSession().flush()
-		time.sleep(10)
+
 		
 start_new_thread(saveThread, ())
 	
