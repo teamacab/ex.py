@@ -10,9 +10,9 @@ Base = declarative_base()
 engine = create_engine('mysql://root@localhost/ex?charset=utf8&use_unicode=0', echo=True)
 DBSession = scoped_session(
 	sessionmaker(
-		autoflush=False,
-		expire_on_commit=False,
-		autocommit=True,
+		autoflush=True,
+		expire_on_commit=True,
+		autocommit=False,
 		bind=engine
 	)
 )
@@ -45,39 +45,38 @@ class Model():
     def save(self):
 		from ex.database import getSession 
 		sess = getSession()
-		sess.begin(subtransactions=True)
+		#sess.begin(subtransactions=True)
 		try:
 			sess.add(self)
-			sess.commit()
+			#sess.commit()
 		except:
-			sess.rollback()
+			#sess.rollback()
 			sess.begin(subtransactions=True)
 			try:
 				sess.add(self)
-				sess.commit()
+				#sess.commit()
 			except:
 				sess.rollback()
 				raise
 				
-
+			
 		return True
 		
 
     def saveMultiple(self,objects = []):
  		from ex.database import getSession 
-		sess = getSession()
-		sess.begin(subtransactions=True)
+		
+		sess = getSession().begin(subtransactions=True)
 		try:
 			sess.add_all(objects)
-			sess.flush()
-			sess.commit()
+			#sess.commit()
+			
 		except:
-			sess.rollback()
-			sess.begin(subtransactions=True)
+			#sess.rollback()
+			sess = getSession().begin(subtransactions=True)
 			try:
 				sess.add_all(objects)
-				sess.flush()
-				sess.commit()
+				#sess.commit()
 			except:
 				sess.rollback()
 				raise
@@ -87,7 +86,7 @@ class Model():
     def update(self):
 		from ex.database import getSession 
 		sess = getSession()
-		sess.begin(subtransactions=True)
+		#sess.begin(subtransactions=True)
 		sess.commit()
 		#sess.flush()
 		

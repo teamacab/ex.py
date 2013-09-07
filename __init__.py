@@ -9,6 +9,7 @@ from database import Player
 from thread import start_new_thread
 #import shortuuid
 
+import logging
 import time
 
 #import RVEngine
@@ -26,6 +27,11 @@ running = True
 uuidIndex = 0
 RVEngine.log("Loading EXPY Python Interface " + VERSION);
 
+logging.basicConfig(filename='c:\\expy.log',level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+preloadBuffer = []
+updateQueue = {}
+dbCommit = True
 def createUnit(netid):
 	RVEngine.log("Creating unit for netid " + netid)
 	u = Unit()
@@ -40,26 +46,82 @@ def getUnit(netid,varname):
 		RVEngine.log("Creating new unit")
 		u = Unit()
 		u.varname = varname
-		start_new_thread(u.save, ())
+		u.save()
 	u.netid = netid
 	return u
 
 
-def preloadUnit(netid,varname):
-	start_new_thread(preloadUnit, (netid,varname))
-	
-def preloadUnitT(netid,varname):
+def preloadUnit(netid,varname,clazz):
 	u = Unit()
 	u.varname = varname
 	u.netid = netid
+	u.clazz = clazz
 	u.save()
-	
+	#preloadBuffer.append(u);
+	return u
+
+def preloadUnitThread():
+	from ex.database import getSession
+	while running:
+		time.sleep(0.5)
+		for u in preloadBuffer:
+			RVEngine.log("Preloading " + u.varname)
+			preloadBuffer.remove(u)
+			
 def loadUnit(netid,varname):
 	RVEngine.log("Loading " + varname)
 	u = getUnit(netid,varname)
 	#RVEngine.loadUnit(u)
 	allUnits.update({ netid : u })
 	return u
+
+def updateUnitT():
+	RVEngine.log("Starting updateUnitT")
+	time.sleep(10)
+	while True:
+		time.sleep(0.5)
+		qo = Unit().queryObject()
+		#RVEngine.log("update unit data")
+		for u in qo.all():
+			#RVEngine.log("Working on " + u.varname)
+			d = updateQueue.get(u.varname)
+			if d is not None:
+				try:
+				#	RVEngine.log("Having unit " + u.varname + " netid " + u.netid)
+					u.netid = d.get('netid')
+					u.posATL = d.get('posATL')
+					u.posASL = d.get('posASL')
+					u.loadout = d.get('loadout')
+					u.damage = d.get('damage')
+					u.animation = d.get('animation')
+					u.side = d.get('side')
+					u.skill = d.get('skill')
+					u.alive = d.get('alive')
+					updateQueue.pop(u.varname, 0)
+				except Exception, e:
+					logger.error("Error while updating " + u.varname + ": " + str(e))
+			#else:
+				#RVEngine.log("No dict for " + u.varname + " in " + str(updateQueue))
+
+			time.sleep(0.01)
+			
+			
+
+def updateUnit(netid, varname, posATL, posASL, loadout, damage, anim, side, rank, skill, alive):
+	data = {
+		'netid' : netid,
+		'posATL' : posATL,
+		'posASL' : posASL,
+		'loadout' : loadout,
+		'damage' : damage,
+		'animation' : anim,
+		'side' : side,
+		'rank' : rank,
+		'skill' : skill,
+		'alive' : alive
+		}
+	updateQueue.update({ varname : data })
+	return str(data)
 
 def loadPlayer(netid,uid):
 	p = player.loadPlayer(netid,uid)
@@ -77,7 +139,7 @@ def getPlayerByVarname(varname):
 def savePlayers():
 	qo = Player().queryObject()
 	for p in qo.all():
-		#RVEngine.log("Updating " + str(p.varname))
+		RVEngine.log("Updating " + str(p.varname))
 		p.update()
 		
 	return True
@@ -85,7 +147,7 @@ def savePlayers():
 def saveUnits():
 	qo = Unit().queryObject()
 	for u in qo.all():
-		#RVEngine.log("Updating " + str(u.varname))
+		RVEngine.log("Updating " + str(u.varname))
 		u.update()
 		
 	return True
@@ -120,10 +182,12 @@ def updateNetId(ref, netid):
 
 
 def loadWorldT():
+	time.sleep(10)
 	RVEngine.log("Restoring world... this may take a while.")
 	# restore all units
 	qo = Unit().queryObject()
 	for u in qo.all():
+		RVEngine.log("Loading unit " + u.varname)
 		RVEngine.createUnit(u)
 
 def loadWorld():
@@ -133,18 +197,43 @@ def loadWorld():
 
 def saveWorld():
 	from ex.database import getSession
-	savePlayers()
-	saveUnits()
-	#RVEngine.log("Flushing database.")
-	getSession().flush()
+	#savePlayers()
+	#saveUnits()
+	sess = getSession() #.begin(subtransactions=True)
+	try:
+		RVEngine.log("Flushing database.")
+		sess.flush()
+		#sess.commit()
+		RVEngine.log("Flushed")
+		
+	except Exception, e:
+		try:
+			logger.error("Error Rolling back: '" + str(e) + "'")
+			sess.rollback()
+			sess = getSession() #.begin(subtransactions=True)
+			logger.error("Error Reflushing database.")
+			sess.flush()
+			logger.error("Error Recommiting database.")
+			#sess.commit()
+			
+		except Exception, e: 
+			logger.error("Aborting: " + str(e))
+			sess.rollback()
+			raise
+	
 def saveThread():
 	RVEngine.log("Starting saveThread")
 	while running:
 		time.sleep(10)
-		saveWorld()
+		try:
+			saveWorld()
+		except Exception, e:
+				logger.error("Error in saveThread: " + str(e))
+		
 		#RVEngine.log("Saving", __file__)
 	
 
 		
 start_new_thread(saveThread, ())
-	
+start_new_thread(preloadUnitThread, ())
+start_new_thread(updateUnitT, ())

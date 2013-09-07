@@ -53,7 +53,8 @@ class RVEngine:
 	@staticmethod
 	def log(message,file=__file__):
 		if RVEngine.log:
-			return RVEngine.execute('[str("' + message + '"), "' + file + '"] call EX_fnc_log;');
+			#return RVEngine.execute('[str("' + message + '"), "' + file + '"] call EX_fnc_log;');
+			return RVEngine.execute('diag_log "' + message + '"')
 		else:
 			return ""
 
@@ -64,9 +65,9 @@ class RVEngine:
 		if unit.side is not None and unit.clazz is not None and unit.posATL is not None:
 			code.append('_unit = (createGroup WEST) createUnit ["' + unit.clazz + '", ' + unit.posATL + ', [], 0, "NONE"];')
 			code.append('_unit setVariable["pyjarma", true, true];')
-			code.append('_py=format["ex.updateNetId(""' + unit.ref + '"", ""%1"")", netid _unit];')
-			code.append('[_py] call EX_fnc_PY;')
-			code.append("sleep 0.02;")
+			#code.append('_py=format["ex.updateNetId(""' + unit.ref + '"", ""%1"")", netid _unit];')
+			#code.append('[_py] call EX_fnc_PY;')
+			#code.append("sleep 0.02;")
 			
 		else:
 			return False # can not create unit.
