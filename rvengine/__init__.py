@@ -117,7 +117,7 @@ class RVEngine:
 	@staticmethod
 	def loadPlayer(unit):
 		code = []
-		code.append('_unit = ' + unit.varname + ';')
+		code.append('private ["_unit"]; _unit = ' + unit.varname + ';')
 		# restore variables
 		if unit.variables is not None:
 			code.append('[_unit, ' + unit.variables + '] call EX_fnc_setAllVariables;')
@@ -150,7 +150,7 @@ class RVEngine:
 		if unit.init is not None:
 			code.append('_result = _unit call compile ' + unit.init);
 
-		# RVEngine.log("Code is: " + "\n".join(code))
+		RVEngine.log("Code is: " + "\n".join(code))
 		RVEngine.script(" ".join(code))
 		return " ".join(code)
 
