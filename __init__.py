@@ -129,8 +129,8 @@ def loadPlayer(netid, uid):
 	players.update({ uid : p})
 	return p
 
-def getPlayer(uid):
-	return players.get(uid)
+def getPlayer(varname):
+	return getPlayerByVarname(varname)
 
 def getPlayerByVarname(varname):
 	qo = Player().queryObject()
