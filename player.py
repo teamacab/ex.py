@@ -2,7 +2,7 @@ from database import Player
 from database import Unit
 from rvengine import RVEngine
 
-def loadPlayer(netid,uid):
+def loadPlayer(netid, uid, varname):
 	RVEngine.log("Loading Player from uid " + uid)
 	qo = Player().queryObject()
 	p = qo.filter(Player.uid == uid).first()
@@ -10,11 +10,12 @@ def loadPlayer(netid,uid):
 		RVEngine.log("Player not found, creating.")
 		p = Player()
 		p.uid = uid
+		p.varname = varname
 		p.save()
 	p.netid = netid
 	p.sync = True
 	p.update()
-	RVEngine.log("Loading unitdata")	
+	RVEngine.log("Loading unitdata")
 	RVEngine.loadPlayer(p)
 	return p
 
