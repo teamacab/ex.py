@@ -27,7 +27,7 @@ running = True
 uuidIndex = 0
 RVEngine.log("Loading EXPY Python Interface " + VERSION);
 
-logging.basicConfig(filename='c:\\expy.log', level=logging.DEBUG)
+logging.basicConfig(filename='expy.log', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 preloadBuffer = []
 updateQueue = {}
