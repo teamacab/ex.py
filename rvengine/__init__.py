@@ -120,6 +120,8 @@ class RVEngine:
 	@staticmethod
 	def loadPlayer(unit):
 		code = []
+
+		code.append('hint "Hallo";')
 		# restore variables
 		if unit.variables is not None:
 			code.append('[' + unit.varname + ', ' + unit.variables + '] call EX_fnc_setAllVariables;')

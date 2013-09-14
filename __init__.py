@@ -126,7 +126,6 @@ def updateUnit(netid, varname, posATL, posASL, loadout, damage, anim, side, rank
 
 def loadPlayer(netid, uid, varname):
 	p = player.loadPlayer(netid, uid, varname)
-	players.update({ uid : p})
 	return p
 
 def getPlayer(varname):

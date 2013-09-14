@@ -6,6 +6,7 @@ def loadPlayer(netid, uid, varname):
 	RVEngine.log("Loading Player from uid " + uid)
 	qo = Player().queryObject()
 	p = qo.filter(Player.uid == uid).first()
+	RVEngine.log("Passed filter")
 	if p is None:
 		RVEngine.log("Player not found, creating.")
 		p = Player()
