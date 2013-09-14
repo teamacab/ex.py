@@ -20,7 +20,7 @@ class RVEngine:
 		return RVEngine.nextTransaction
 
 	@staticmethod
-	def script(code, callback=""):
+	def script(code, callback="", localTo=None):
 		print code
 		tid = RVEngine.transaction()
 		n = 256
@@ -28,6 +28,9 @@ class RVEngine:
 
 		print list
 		RVEngine.queue.append(str(tid) + ":\0000:\000:\0000:" + callback)
+
+		if localTo is not None:
+			RVEngine.queue.append(str(tid) + ":\0000:\005:\0000:" + localTo)
 		for l in list:
 			RVEngine.queue.append(str(tid) + ":\0000:\030:\0000:" + l)
 		RVEngine.queue.append(str(tid) + ":\0000:\001:\0000:")
@@ -149,7 +152,7 @@ class RVEngine:
 		if unit.init is not None:
 			code.append('_result = ' + unit.varname + ' call compile ' + unit.init);
 
-		RVEngine.log("Code is: " + "\n".join(code))
-		RVEngine.script(" ".join(code))
+		# RVEngine.log("Code is: " + "\n".join(code))
+		RVEngine.script(" ".join(code), "", unit.varname)
 		return " ".join(code)
 
