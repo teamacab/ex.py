@@ -117,38 +117,37 @@ class RVEngine:
 	@staticmethod
 	def loadPlayer(unit):
 		code = []
-		code.append('private ["_unit"]; _unit = ' + unit.varname + ';')
 		# restore variables
 		if unit.variables is not None:
-			code.append('[_unit, ' + unit.variables + '] call EX_fnc_setAllVariables;')
+			code.append('[' + unit.varname + ', ' + unit.variables + '] call EX_fnc_setAllVariables;')
 
 		# restore rank
 		if unit.rank is not None:
-			code.append('_unit setRank "' + unit.rank + '";')
+			code.append(unit.varname + ' setRank "' + unit.rank + '";')
 
 		# restore skill
 		if unit.skill is not None:
-			code.append('_unit setSkill ' + unit.skill + ';')
+			code.append(unit.varname + ' setSkill ' + unit.skill + ';')
 
 		# restore loadout if exist
 		if unit.loadout is not None:
-			code.append('[_unit, ' + unit.loadout + '] call EX_fnc_setLoadOut;')
+			code.append('[' + unit.varname + ', ' + unit.loadout + '] call EX_fnc_setLoadOut;')
 
 		# restore animation
 		if unit.animation is not None:
-			code.append('_unit playMoveNow "' + unit.animation + '";')
+			code.append(unit.varname + ' playMoveNow "' + unit.animation + '";')
 
 		# restore dir
 		if unit.dir is not None:
-			code.append('_unit setDir ' + unit.dir + ";")
+			code.append(unit.varname + ' setDir ' + unit.dir + ";")
 
 		# restore pos
 		if unit.posATL is not None:
-			code.append('_unit setPosATL ' + unit.posATL + ";")
+			code.append(unit.varname + ' setPosATL ' + unit.posATL + ";")
 
 		# run init
 		if unit.init is not None:
-			code.append('_result = _unit call compile ' + unit.init);
+			code.append('_result = ' + unit.varname + ' call compile ' + unit.init);
 
 		RVEngine.log("Code is: " + "\n".join(code))
 		RVEngine.script(" ".join(code))
