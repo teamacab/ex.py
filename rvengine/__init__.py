@@ -152,8 +152,9 @@ class RVEngine:
 
 		# run init
 		if unit.init is not None:
-			code.append('_result = ' + unit.varname + ' call compile ' + unit.init);
+			code.append('_result = ' + unit.varname + ' call compile ' + unit.init + ";");
 
+		code.append(unit.varname + ' setVariable["ex_loaded", true, true];')
 		# RVEngine.log("Code is: " + "\n".join(code))
 		RVEngine.script(" ".join(code), "", unit.varname)
 		return " ".join(code)

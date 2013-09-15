@@ -13,8 +13,10 @@ def loadPlayer(netid, uid, varname):
 		p.uid = uid
 		p.varname = varname
 		p.save()
+	RVEngine.log("Passed is None, got " + str(p.varname))
 	p.netid = netid
 	p.sync = True
+	RVEngine.log("Updating player")
 	p.update()
 	RVEngine.log("Loading unitdata")
 	RVEngine.loadPlayer(p)
