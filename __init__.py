@@ -12,6 +12,9 @@ from thread import start_new_thread
 import logging
 import time
 
+sys.stdout = open('python.out', 'w')
+sys.stderr = open('python.out', 'w')
+
 # import RVEngine
 # from Unit import *
 # from Db import Db
